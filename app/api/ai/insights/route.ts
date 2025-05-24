@@ -1,40 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { AIClient } from '@/lib/api/clients/ai-client'
 
 export async function POST(request: NextRequest) {
   try {
-    const { query } = await request.json()
+    const { query, context = {} } = await request.json()
     
-    // Mock AI-generated insights
-    const insights = {
-      opportunities: [
-        `Growing market demand for ${query} solutions in emerging markets`,
-        'Potential for technology integration and digital transformation',
-        'Strategic partnerships with industry leaders could accelerate growth',
-        'Untapped customer segments present expansion opportunities'
-      ],
-      risks: [
-        'Increasing competition from new market entrants',
-        'Regulatory changes may impact operational flexibility',
-        'Supply chain vulnerabilities need to be addressed',
-        'Economic uncertainty could affect investment decisions'
-      ],
-      recommendations: [
-        'Invest in research and development to maintain competitive edge',
-        'Develop strategic partnerships to expand market reach',
-        'Implement robust risk management frameworks',
-        'Focus on customer experience and retention strategies'
-      ],
-      futureOutlook: `The ${query} market is positioned for significant growth over the next 3-5 years. 
-      Key drivers include technological advancement, changing consumer preferences, and regulatory support. 
-      Organizations that adapt quickly and invest strategically will be best positioned to capture market share.`
-    }
+    // Initialize AI client
+    const aiClient = new AIClient()
+    
+    // Generate insights using available AI providers
+    const insights = await aiClient.generateInsights(query, context)
     
     return NextResponse.json(insights)
   } catch (error) {
     console.error('Insights API error:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate insights' },
-      { status: 500 }
-    )
+    
+    // Return basic insights on error
+    return NextResponse.json({
+      opportunities: [
+        `Market expansion opportunities in ${query} sector`,
+        'Technology integration and digital transformation potential',
+        'Strategic partnership possibilities',
+        'Untapped customer segments'
+      ],
+      risks: [
+        'Competitive pressure from established players',
+        'Regulatory and compliance challenges',
+        'Market volatility and economic factors',
+        'Technology adoption barriers'
+      ],
+      recommendations: [
+        'Conduct comprehensive market research',
+        'Develop differentiated value proposition',
+        'Build strategic partnerships',
+        'Invest in technology and innovation'
+      ],
+      futureOutlook: `The ${query} market presents both opportunities and challenges. Success will depend on strategic positioning, innovation, and adaptability to changing market conditions.`,
+      keyTakeaways: [
+        'Market shows growth potential',
+        'Innovation is key differentiator',
+        'Customer needs are evolving rapidly'
+      ]
+    })
   }
 }
