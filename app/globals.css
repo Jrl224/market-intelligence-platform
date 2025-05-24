@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+  }
+  
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .search-input {
+    @apply w-full px-4 py-3 text-lg border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
+  }
+  
+  .report-section {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6;
+  }
+  
+  .loading-spinner {
+    @apply inline-block w-8 h-8 border-4 border-gray-200 border-t-primary rounded-full animate-spin;
+  }
+}
