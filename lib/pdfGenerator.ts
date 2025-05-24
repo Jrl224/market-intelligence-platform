@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
-import { ReportData } from '@/types'
+import { ReportData, ReportSection } from '@/types'
 
 export async function generatePDF(data: ReportData) {
   const pdf = new jsPDF('p', 'mm', 'a4')
@@ -47,7 +47,7 @@ export async function generatePDF(data: ReportData) {
     const content = formatSectionContent(section)
     const lines = pdf.splitTextToSize(content, pageWidth - 2 * margin)
     
-    lines.forEach(line => {
+    lines.forEach((line: string) => {
       if (yPosition > pageHeight - 20) {
         pdf.addPage()
         yPosition = margin
@@ -63,7 +63,7 @@ export async function generatePDF(data: ReportData) {
   pdf.save(`${data.query.replace(/[^a-z0-9]/gi, '_')}_report.pdf`)
 }
 
-function formatSectionContent(section: any): string {
+function formatSectionContent(section: ReportSection): string {
   switch (section.type) {
     case 'trends':
       let content = ''
@@ -72,27 +72,27 @@ function formatSectionContent(section: any): string {
       }
       if (section.data.geographicDistribution) {
         content += 'Top Locations:\n'
-        section.data.geographicDistribution.slice(0, 5).forEach(loc => {
+        section.data.geographicDistribution.slice(0, 5).forEach((loc: any) => {
           content += `${loc.location}: ${loc.interest}%\n`
         })
       }
       return content
       
     case 'news':
-      return section.data.articles?.slice(0, 5).map(article => 
+      return section.data.articles?.slice(0, 5).map((article: any) => 
         `${article.title}\n${article.source} - ${new Date(article.publishedAt).toLocaleDateString()}\n${article.description}\n`
       ).join('\n') || 'No news found.'
       
     case 'insights':
       let insightContent = ''
       if (section.data.opportunities) {
-        insightContent += 'Opportunities:\n' + section.data.opportunities.map(o => `• ${o}`).join('\n') + '\n\n'
+        insightContent += 'Opportunities:\n' + section.data.opportunities.map((o: string) => `• ${o}`).join('\n') + '\n\n'
       }
       if (section.data.risks) {
-        insightContent += 'Risks:\n' + section.data.risks.map(r => `• ${r}`).join('\n') + '\n\n'
+        insightContent += 'Risks:\n' + section.data.risks.map((r: string) => `• ${r}`).join('\n') + '\n\n'
       }
       if (section.data.recommendations) {
-        insightContent += 'Recommendations:\n' + section.data.recommendations.map(r => `• ${r}`).join('\n') + '\n\n'
+        insightContent += 'Recommendations:\n' + section.data.recommendations.map((r: string) => `• ${r}`).join('\n') + '\n\n'
       }
       if (section.data.futureOutlook) {
         insightContent += `Future Outlook: ${section.data.futureOutlook}`
@@ -100,12 +100,12 @@ function formatSectionContent(section: any): string {
       return insightContent
       
     case 'research':
-      return section.data.papers?.slice(0, 3).map(paper => 
+      return section.data.papers?.slice(0, 3).map((paper: any) => 
         `${paper.title}\n${paper.authors.join(', ')} (${paper.year})\n${paper.abstract.substring(0, 200)}...\n`
       ).join('\n') || 'No research found.'
       
     case 'patents':
-      return section.data.patents?.slice(0, 3).map(patent => 
+      return section.data.patents?.slice(0, 3).map((patent: any) => 
         `${patent.title}\nPatent #${patent.patentNumber} - ${patent.date}\nInventor: ${patent.inventor}\n`
       ).join('\n') || 'No patents found.'
       
