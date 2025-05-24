@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
 
+interface CrossrefAuthor {
+  given: string
+  family: string
+}
+
+interface CrossrefItem {
+  title?: string[]
+  author?: CrossrefAuthor[]
+  abstract?: string
+  'published-print'?: {
+    'date-parts'?: number[][]
+  }
+  DOI: string
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { query } = await request.json()
@@ -14,9 +29,9 @@ export async function POST(request: NextRequest) {
       }
     })
     
-    const papers = crossrefResponse.data.message?.items?.map(item => ({
+    const papers = crossrefResponse.data.message?.items?.map((item: CrossrefItem) => ({
       title: item.title?.[0] || 'Untitled',
-      authors: item.author?.map(a => `${a.given} ${a.family}`).slice(0, 3) || ['Unknown'],
+      authors: item.author?.map((a: CrossrefAuthor) => `${a.given} ${a.family}`).slice(0, 3) || ['Unknown'],
       abstract: item.abstract || 'No abstract available',
       year: item['published-print']?.['date-parts']?.[0]?.[0] || new Date().getFullYear(),
       doi: item.DOI,
