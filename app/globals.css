@@ -3,27 +3,99 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
-  }
-  
   body {
-    @apply bg-white text-gray-900;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply text-gray-900 bg-white;
   }
 }
 
 @layer components {
-  .search-input {
-    @apply w-full px-4 py-3 text-lg border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
-  }
-  
-  .report-section {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6;
-  }
-  
   .loading-spinner {
-    @apply inline-block w-8 h-8 border-4 border-gray-200 border-t-primary rounded-full animate-spin;
+    @apply inline-block w-12 h-12 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin;
   }
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Print styles for better PDF export */
+@media print {
+  body {
+    @apply bg-white;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-break {
+    page-break-before: always;
+  }
+}
+
+/* Chart.js responsive fixes */
+.chartjs-render-monitor {
+  @apply max-w-full;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-400 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+}
+
+/* Section animations */
+.report-section {
+  @apply transition-all duration-300 ease-out;
+}
+
+.report-section:hover {
+  @apply shadow-lg;
+}
+
+/* Search bar focus styles */
+.search-input:focus {
+  @apply ring-2 ring-blue-500 ring-offset-2;
+}
+
+/* Button hover effects */
+.btn-primary {
+  @apply bg-blue-500 text-white px-4 py-2 rounded-lg transition-all duration-200;
+}
+
+.btn-primary:hover {
+  @apply bg-blue-600 shadow-lg transform -translate-y-0.5;
+}
+
+/* Card hover effects */
+.hover-card {
+  @apply transition-all duration-200;
+}
+
+.hover-card:hover {
+  @apply shadow-xl transform -translate-y-1;
 }
