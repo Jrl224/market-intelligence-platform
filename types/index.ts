@@ -8,7 +8,7 @@ export interface ReportData {
 export interface ReportSection {
   id: string
   title: string
-  type: 'trends' | 'news' | 'sentiment' | 'research' | 'patents' | 'economic' | 'insights' | 'financial'
+  type: 'trends' | 'news' | 'sentiment' | 'research' | 'patents' | 'economic' | 'financial' | 'insights'
   data: any
   visible: boolean
 }
@@ -34,18 +34,32 @@ export interface NewsData {
     publishedAt: string
     imageUrl?: string
   }>
+  sources?: string[]
+  message?: string
 }
 
 export interface SentimentData {
-  redditPosts: Array<{
+  redditPosts?: Array<{
     title: string
     content: string
     subreddit: string
     score: number
+    comments?: number
     url: string
+    author?: string
     created: string
   }>
-  youtubeSentiment: {
+  youtubeSentiment?: {
+    positive: number
+    neutral: number
+    negative: number
+  }
+  redditSentiment?: {
+    positive: number
+    neutral: number
+    negative: number
+  }
+  overallSentiment?: {
     positive: number
     neutral: number
     negative: number
@@ -59,20 +73,24 @@ export interface ResearchData {
     abstract: string
     year: number
     doi?: string
-    url?: string
+    url: string
+    citations?: number
+    source?: string
   }>
 }
 
 export interface PatentData {
+  totalPatents?: number
   patents: Array<{
     title: string
+    patentNumber: string
+    date: string
     inventor: string
     assignee: string
-    date: string
-    abstract: string
-    patentNumber: string
+    abstract?: string
+    url?: string
   }>
-  totalCount: number
+  message?: string
 }
 
 export interface EconomicData {
@@ -81,8 +99,34 @@ export interface EconomicData {
     value: number
     unit: string
     date: string
-    change: number
+    change?: number
+    source?: string
   }>
+  errors?: string[]
+}
+
+export interface FinancialData {
+  stocks?: Array<{
+    symbol: string
+    name: string
+    price: number
+    change: number
+    changePercent: number
+    volume: number
+    marketCap?: number
+    pe?: number
+    high52Week?: number
+    low52Week?: number
+  }>
+  sectorPerformance?: any
+  marketIndices?: Array<{
+    name: string
+    value: number
+    change: number
+    changePercent: number
+  }>
+  message?: string
+  suggestion?: string
 }
 
 export interface InsightsData {
@@ -90,19 +134,7 @@ export interface InsightsData {
   risks: string[]
   recommendations: string[]
   futureOutlook: string
-}
-
-export interface FinancialData {
-  stockData?: {
-    symbol: string
-    price: number
-    change: number
-    changePercent: number
-    volume: number
-    marketCap: number
-  }
-  historicalPrices?: Array<{
-    date: string
-    close: number
-  }>
+  keyTakeaways?: string[]
+  competitiveAnalysis?: string
+  marketSize?: string
 }
