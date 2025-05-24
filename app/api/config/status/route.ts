@@ -45,6 +45,12 @@ export async function GET() {
   const hasRequiredApis = requiredApis.every(key => apiStatus[key as keyof typeof apiStatus])
   const hasAiProvider = apiStatus.OPENAI_API_KEY || apiStatus.ANTHROPIC_API_KEY || apiStatus.GEMINI_API_KEY
   
+  // Add CORS headers for browser access
+  const headers = {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+  }
+  
   return NextResponse.json({
     status: apiStatus,
     stats: {
@@ -62,6 +68,7 @@ export async function GET() {
       economic: apiStatus.FRED_API_KEY || apiStatus.CENSUS_API_KEY,
       financial: apiStatus.ALPHA_VANTAGE_KEY || apiStatus.RAPIDAPI_KEY,
       ai: hasAiProvider
-    }
-  })
+    },
+    timestamp: new Date().toISOString()
+  }, { headers })
 }
