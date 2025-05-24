@@ -25,17 +25,24 @@ const API_CONFIGS: ApiConfig[] = [
 
 export default function ApiStatus({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [apiStatuses, setApiStatuses] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<any>(null);
   
   useEffect(() => {
-    // Check which APIs are configured (this is a simplified check)
-    const statuses: Record<string, boolean> = {}
-    API_CONFIGS.forEach(api => {
-      // In production, you'd check this server-side
-      // For now, we'll just check if the key exists in the environment
-      statuses[api.key] = !!process.env[`NEXT_PUBLIC_${api.key}_CONFIGURED`]
-    })
-    setApiStatuses(statuses)
-  }, [])
+    if (isOpen) {
+      // Fetch actual API status from the server
+      fetch('/api/config/status')
+        .then(res => res.json())
+        .then(data => {
+          setApiStatuses(data.status)
+          setStats(data.stats)
+          setLoading(false)
+        })
+        .catch(() => {
+          setLoading(false)
+        })
+    }
+  }, [isOpen])
   
   if (!isOpen) return null
   
@@ -49,7 +56,14 @@ export default function ApiStatus({ isOpen, onClose }: { isOpen: boolean; onClos
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
         <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">API Configuration Status</h2>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">API Configuration Status</h2>
+            {stats && (
+              <p className="text-sm text-gray-600 mt-1">
+                {stats.configured} of {stats.total} APIs configured ({stats.percentage}%)
+              </p>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -61,55 +75,82 @@ export default function ApiStatus({ isOpen, onClose }: { isOpen: boolean; onClos
         </div>
         
         <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
-          <p className="text-gray-600 mb-6">
-            The platform works with partial API configurations. Each missing API only disables its specific features.
-          </p>
-          
-          {Object.entries(categorizedApis).map(([category, apis]) => (
-            <div key={category} className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">{category}</h3>
-              <div className="space-y-2">
-                {apis.map(api => (
-                  <div 
-                    key={api.key}
-                    className={`flex items-center justify-between p-3 rounded-lg border ${
-                      apiStatuses[api.key] 
-                        ? 'bg-green-50 border-green-200' 
-                        : 'bg-gray-50 border-gray-200'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        apiStatuses[api.key] ? 'bg-green-500' : 'bg-gray-400'
-                      }`} />
-                      <div>
-                        <p className="font-medium text-gray-800">
-                          {api.name}
-                          {api.required && <span className="text-red-500 ml-1">*</span>}
-                        </p>
-                        <p className="text-sm text-gray-600">{api.description}</p>
-                      </div>
-                    </div>
-                    <div className="text-sm">
-                      {apiStatuses[api.key] ? (
-                        <span className="text-green-600 font-medium">Active</span>
-                      ) : (
-                        <span className="text-gray-500">Not configured</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <div className="loading-spinner" />
             </div>
-          ))}
-          
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <span className="font-semibold">Note:</span> API status is checked at runtime. 
-              Configure your API keys in the <code className="bg-blue-100 px-1 py-0.5 rounded">.env.local</code> file 
-              or in your deployment environment variables.
-            </p>
-          </div>
+          ) : (
+            <>
+              {stats && !stats.hasMinimumRequired && (
+                <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    <span className="font-semibold">Missing required APIs:</span> For basic functionality, 
+                    you need at least SerpAPI, NewsAPI, and one AI provider (OpenAI, Anthropic, or Gemini).
+                  </p>
+                </div>
+              )}
+              
+              <p className="text-gray-600 mb-6">
+                The platform adapts to available APIs. Missing APIs only disable their specific features.
+              </p>
+              
+              {Object.entries(categorizedApis).map(([category, apis]) => (
+                <div key={category} className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-3">{category}</h3>
+                  <div className="space-y-2">
+                    {apis.map(api => (
+                      <div 
+                        key={api.key}
+                        className={`flex items-center justify-between p-3 rounded-lg border ${
+                          apiStatuses[api.key] 
+                            ? 'bg-green-50 border-green-200' 
+                            : 'bg-gray-50 border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-3 h-3 rounded-full ${
+                            apiStatuses[api.key] ? 'bg-green-500' : 'bg-gray-400'
+                          }`} />
+                          <div>
+                            <p className="font-medium text-gray-800">
+                              {api.name}
+                              {api.required && <span className="text-red-500 ml-1">*</span>}
+                            </p>
+                            <p className="text-sm text-gray-600">{api.description}</p>
+                          </div>
+                        </div>
+                        <div className="text-sm">
+                          {apiStatuses[api.key] ? (
+                            <span className="text-green-600 font-medium">Active</span>
+                          ) : (
+                            <span className="text-gray-500">Not configured</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <span className="font-semibold">Configuration:</span> Add your API keys to the{' '}
+                  <code className="bg-blue-100 px-1 py-0.5 rounded">.env.local</code> file or 
+                  in your deployment environment variables.
+                </p>
+                <p className="text-sm text-blue-800 mt-2">
+                  <span className="font-semibold">Need help?</span> Check the{' '}
+                  <a href="https://github.com/Jrl224/market-intelligence-platform" 
+                     className="underline hover:text-blue-900" 
+                     target="_blank" 
+                     rel="noopener noreferrer">
+                    README
+                  </a>{' '}
+                  for detailed setup instructions.
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
