@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AIClient } from '@/lib/api/clients/ai-client'
 
 export async function POST(request: NextRequest) {
+  let query = 'market analysis' // Default fallback
+  
   try {
-    const { query, context = {} } = await request.json()
+    const body = await request.json()
+    query = body.query || query
+    const context = body.context || {}
     
     // Initialize AI client
     const aiClient = new AIClient()
