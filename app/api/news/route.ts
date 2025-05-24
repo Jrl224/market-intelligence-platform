@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
 
+interface NewsArticle {
+  title: string
+  description: string
+  url: string
+  source: {
+    name: string
+  }
+  publishedAt: string
+  urlToImage: string | null
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { query } = await request.json()
@@ -19,7 +30,7 @@ export async function POST(request: NextRequest) {
       }
     })
     
-    const articles = response.data.articles?.map(article => ({
+    const articles = response.data.articles?.map((article: NewsArticle) => ({
       title: article.title,
       description: article.description,
       url: article.url,
