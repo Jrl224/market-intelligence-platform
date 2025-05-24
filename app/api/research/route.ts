@@ -18,6 +18,17 @@ interface CrossrefItem {
   'is-referenced-by-count'?: number
 }
 
+interface Paper {
+  title: string
+  authors: string[]
+  abstract: string
+  year: number
+  doi?: string
+  url: string
+  citations?: number
+  source: string
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { query } = await request.json()
@@ -29,7 +40,7 @@ export async function POST(request: NextRequest) {
     const papers = await academicClient.searchAll(query, 20)
     
     // Also try Crossref for additional results
-    let crossrefPapers = []
+    let crossrefPapers: Paper[] = []
     try {
       const crossrefResponse = await axios.get('https://api.crossref.org/works', {
         params: {
@@ -56,9 +67,9 @@ export async function POST(request: NextRequest) {
     
     // Combine and deduplicate papers
     const allPapers = [...papers, ...crossrefPapers]
-    const uniquePapers = []
-    const seenDOIs = new Set()
-    const seenTitles = new Set()
+    const uniquePapers: Paper[] = []
+    const seenDOIs = new Set<string>()
+    const seenTitles = new Set<string>()
     
     allPapers.forEach(paper => {
       const normalizedTitle = paper.title.toLowerCase().replace(/[^a-z0-9]/g, '')
