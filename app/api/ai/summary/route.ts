@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
 
 export async function POST(request: NextRequest) {
+  let query = 'market analysis' // Default fallback
+  
   try {
-    const { query } = await request.json()
+    const body = await request.json()
+    query = body.query || query
     
     // Try multiple AI providers for summary generation
     let summary = ''
