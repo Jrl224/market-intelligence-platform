@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
         created: new Date().toISOString()
       },
       {
-        title: `${query} - What's your experience?`,
-        content: 'I've been following this closely...',
+        title: `${query} - What\'s your experience?`,
+        content: 'I\'ve been following this closely...',
         subreddit: 'business',
         score: 189,
         url: 'https://reddit.com/r/business',
