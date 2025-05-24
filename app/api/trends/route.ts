@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
 
+interface TrendsTimelineItem {
+  date: string
+  values?: Array<{
+    value: number
+  }>
+}
+
+interface RelatedQueryItem {
+  query: string
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { query } = await request.json()
@@ -31,12 +42,12 @@ export async function POST(request: NextRequest) {
     })
     
     // Process the data
-    const searchInterest = trendsResponse.data.interest_over_time?.timeline_data?.map(item => ({
+    const searchInterest = trendsResponse.data.interest_over_time?.timeline_data?.map((item: TrendsTimelineItem) => ({
       date: item.date,
       value: item.values?.[0]?.value || 0
     })) || []
     
-    const relatedQueries = relatedResponse.data.related_queries?.rising?.map(item => item.query) || []
+    const relatedQueries = relatedResponse.data.related_queries?.rising?.map((item: RelatedQueryItem) => item.query) || []
     
     // Mock geographic data (would need additional API calls for real data)
     const geographicDistribution = [
