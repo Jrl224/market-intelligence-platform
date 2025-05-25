@@ -18,7 +18,9 @@ export async function generateReport(query: string): Promise<ReportData> {
     if (expansionResponse.ok) {
       queryExpansion = await expansionResponse.json()
       // Use expanded terms for better search results
-      expandedQuery = queryExpansion.searchStrategy.primary.join(' ')
+      if (queryExpansion && queryExpansion.searchStrategy && queryExpansion.searchStrategy.primary) {
+        expandedQuery = queryExpansion.searchStrategy.primary.join(' ')
+      }
     }
   } catch (error) {
     console.error('Query expansion error:', error)
@@ -26,8 +28,8 @@ export async function generateReport(query: string): Promise<ReportData> {
   
   // Determine if we need industry/company specific data
   const isCompanyQuery = /company|corporation|inc|ltd|llc|competitor/i.test(query) || 
-    (queryExpansion && queryExpansion.competitors.length > 0)
-  const industry = queryExpansion?.category.name || detectIndustry(query)
+    (queryExpansion && queryExpansion.competitors && queryExpansion.competitors.length > 0)
+  const industry = queryExpansion?.category?.name || detectIndustry(query)
   
   // Fetch data from all sources in parallel, using expanded query
   const fetchPromises = [
@@ -45,7 +47,7 @@ export async function generateReport(query: string): Promise<ReportData> {
   ]
   
   // Add competitor analysis if relevant
-  if (isCompanyQuery || industry || queryExpansion?.competitors.length) {
+  if (isCompanyQuery || industry || (queryExpansion && queryExpansion.competitors && queryExpansion.competitors.length > 0)) {
     fetchPromises.push(fetchCompetitors(query, industry, queryExpansion))
   }
   
