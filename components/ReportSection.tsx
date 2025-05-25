@@ -9,6 +9,9 @@ import PatentsSection from './sections/PatentsSection'
 import EconomicSection from './sections/EconomicSection'
 import InsightsSection from './sections/InsightsSection'
 import FinancialSection from './sections/FinancialSection'
+import TwitterSection from './sections/TwitterSection'
+import LinkedInSection from './sections/LinkedInSection'
+import CompetitorSection from './sections/CompetitorSection'
 
 interface ReportSectionProps {
   section: ReportSectionType
@@ -23,8 +26,14 @@ export default function ReportSection({ section }: ReportSectionProps) {
         return <TrendsSection data={section.data} />
       case 'news':
         return <NewsSection data={section.data} />
+      case 'twitter':
+        return <TwitterSection section={section} />
+      case 'linkedin':
+        return <LinkedInSection section={section} />
       case 'sentiment':
         return <SentimentSection data={section.data} />
+      case 'competitors':
+        return <CompetitorSection section={section} />
       case 'research':
         return <ResearchSection data={section.data} />
       case 'patents':

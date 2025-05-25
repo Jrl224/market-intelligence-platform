@@ -3,7 +3,33 @@ import type { ReportData, ReportSection } from '@/types'
 export async function generateReport(query: string): Promise<ReportData> {
   const timestamp = new Date().toISOString()
   
+  // Determine if we need industry/company specific data
+  const isCompanyQuery = /company|corporation|inc|ltd|llc|competitor/i.test(query)
+  const industry = detectIndustry(query)
+  
   // Fetch data from all sources in parallel
+  const fetchPromises = [
+    generateSummary(query),
+    fetchTrends(query),
+    fetchNews(query),
+    fetchSentiment(query),
+    fetchResearch(query),
+    fetchPatents(query),
+    fetchEconomic(query),
+    fetchFinancial(query),
+    fetchTwitter(query),
+    fetchLinkedIn(query),
+    generateInsights(query)
+  ]
+  
+  // Add competitor analysis if relevant
+  if (isCompanyQuery || industry) {
+    fetchPromises.push(fetchCompetitors(query, industry))
+  }
+  
+  const results = await Promise.allSettled(fetchPromises)
+  
+  // Destructure results
   const [
     summary,
     trends,
@@ -13,18 +39,11 @@ export async function generateReport(query: string): Promise<ReportData> {
     patents,
     economic,
     financial,
-    insights
-  ] = await Promise.allSettled([
-    generateSummary(query),
-    fetchTrends(query),
-    fetchNews(query),
-    fetchSentiment(query),
-    fetchResearch(query),
-    fetchPatents(query),
-    fetchEconomic(query),
-    fetchFinancial(query),
-    generateInsights(query)
-  ])
+    twitter,
+    linkedin,
+    insights,
+    competitors
+  ] = results
   
   const sections: ReportSection[] = []
   
@@ -49,12 +68,45 @@ export async function generateReport(query: string): Promise<ReportData> {
     })
   }
   
+  // Add Twitter section
+  if (twitter.status === 'fulfilled' && twitter.value) {
+    sections.push({
+      id: 'twitter',
+      title: 'Twitter/X Analysis',
+      type: 'twitter',
+      data: twitter.value,
+      visible: true
+    })
+  }
+  
+  // Add LinkedIn section
+  if (linkedin.status === 'fulfilled' && linkedin.value) {
+    sections.push({
+      id: 'linkedin',
+      title: 'LinkedIn Professional Insights',
+      type: 'linkedin',
+      data: linkedin.value,
+      visible: true
+    })
+  }
+  
   if (sentiment.status === 'fulfilled' && sentiment.value) {
     sections.push({
       id: 'sentiment',
       title: 'Community Sentiment',
       type: 'sentiment',
       data: sentiment.value,
+      visible: true
+    })
+  }
+  
+  // Add competitor analysis if available
+  if (competitors && competitors.status === 'fulfilled' && competitors.value) {
+    sections.push({
+      id: 'competitors',
+      title: 'Competitor Analysis',
+      type: 'competitors',
+      data: competitors.value,
       visible: true
     })
   }
@@ -117,6 +169,27 @@ export async function generateReport(query: string): Promise<ReportData> {
   }
 }
 
+// Helper function to detect industry
+function detectIndustry(query: string): string | null {
+  const queryLower = query.toLowerCase()
+  
+  const industryKeywords: { [key: string]: string[] } = {
+    'cleaning products': ['cleaning', 'cleaner', 'detergent', 'soap', 'sanitizer', 'oxyclean', 'arm & hammer', 'arm and hammer'],
+    'personal care': ['personal care', 'cosmetics', 'beauty', 'skincare', 'haircare', 'hygiene'],
+    'technology': ['tech', 'software', 'saas', 'ai', 'cloud', 'digital', 'platform'],
+    'consumer goods': ['consumer', 'cpg', 'fmcg', 'retail', 'products'],
+    'pharmaceuticals': ['pharma', 'drug', 'medicine', 'healthcare', 'biotech']
+  }
+  
+  for (const [industry, keywords] of Object.entries(industryKeywords)) {
+    if (keywords.some(keyword => queryLower.includes(keyword))) {
+      return industry
+    }
+  }
+  
+  return null
+}
+
 // API Functions
 async function generateSummary(query: string): Promise<string> {
   const response = await fetch('/api/ai/summary', {
@@ -151,6 +224,33 @@ async function fetchSentiment(query: string) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query })
+  })
+  return response.json()
+}
+
+async function fetchTwitter(query: string) {
+  const response = await fetch('/api/twitter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query })
+  })
+  return response.json()
+}
+
+async function fetchLinkedIn(query: string) {
+  const response = await fetch('/api/linkedin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query })
+  })
+  return response.json()
+}
+
+async function fetchCompetitors(query: string, industry: string | null) {
+  const response = await fetch('/api/competitors', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, industry })
   })
   return response.json()
 }

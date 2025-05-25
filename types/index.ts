@@ -8,45 +8,52 @@ export interface ReportData {
 export interface ReportSection {
   id: string
   title: string
-  type: 'trends' | 'news' | 'sentiment' | 'research' | 'patents' | 'economic' | 'financial' | 'insights'
+  type: 'trends' | 'news' | 'sentiment' | 'research' | 'patents' | 'economic' | 'financial' | 'insights' | 'twitter' | 'linkedin' | 'competitors'
   data: any
   visible: boolean
+  loading?: boolean
+  error?: string
 }
 
 export interface TrendsData {
-  searchInterest: Array<{
+  timelineData?: Array<{
     date: string
     value: number
   }>
-  relatedQueries: string[]
-  geographicDistribution: Array<{
+  relatedQueries?: string[]
+  relatedTopics?: Array<{
+    topic: string
+    value: number
+  }>
+  geographicDistribution?: Array<{
     location: string
     interest: number
   }>
 }
 
-export interface NewsData {
-  articles: Array<{
-    title: string
-    description: string
-    url: string
-    source: string
-    publishedAt: string
-    imageUrl?: string
-  }>
-  sources?: string[]
-  message?: string
+export interface NewsArticle {
+  title: string
+  description: string
+  url: string
+  source: string
+  publishedAt: string
+  imageUrl?: string
 }
 
 export interface SentimentData {
+  overallSentiment: {
+    positive: number
+    neutral: number
+    negative: number
+  }
   redditPosts?: Array<{
     title: string
     content: string
     subreddit: string
     score: number
-    comments?: number
+    comments: number
     url: string
-    author?: string
+    author: string
     created: string
   }>
   youtubeSentiment?: {
@@ -59,50 +66,35 @@ export interface SentimentData {
     neutral: number
     negative: number
   }
-  overallSentiment?: {
-    positive: number
-    neutral: number
-    negative: number
-  }
 }
 
-export interface ResearchData {
-  papers: Array<{
-    title: string
-    authors: string[]
-    abstract: string
-    year: number
-    doi?: string
-    url: string
-    citations?: number
-    source?: string
-  }>
+export interface ResearchPaper {
+  title: string
+  authors: string[]
+  abstract: string
+  year: number
+  doi?: string
+  url?: string
+  citations?: number
 }
 
-export interface PatentData {
-  totalPatents?: number
-  patents: Array<{
-    title: string
-    patentNumber: string
-    date: string
-    inventor: string
-    assignee: string
-    abstract?: string
-    url?: string
-  }>
-  message?: string
+export interface Patent {
+  title: string
+  patentNumber: string
+  inventor: string
+  assignee: string
+  date: string
+  abstract: string
+  url?: string
 }
 
-export interface EconomicData {
-  indicators: Array<{
-    name: string
-    value: number
-    unit: string
-    date: string
-    change?: number
-    source?: string
-  }>
-  errors?: string[]
+export interface EconomicIndicator {
+  name: string
+  value: number
+  unit: string
+  date: string
+  change?: number
+  source?: string
 }
 
 export interface FinancialData {
@@ -118,15 +110,18 @@ export interface FinancialData {
     high52Week?: number
     low52Week?: number
   }>
-  sectorPerformance?: any
   marketIndices?: Array<{
     name: string
     value: number
     change: number
     changePercent: number
   }>
-  message?: string
-  suggestion?: string
+  sectorPerformance?: {
+    [sector: string]: {
+      change: number
+      performance: string
+    }
+  }
 }
 
 export interface InsightsData {
@@ -134,7 +129,114 @@ export interface InsightsData {
   risks: string[]
   recommendations: string[]
   futureOutlook: string
-  keyTakeaways?: string[]
-  competitiveAnalysis?: string
-  marketSize?: string
+}
+
+export interface TwitterData {
+  tweets: Array<{
+    id: string
+    text: string
+    author: {
+      username: string
+      name: string
+      verified: boolean
+    }
+    metrics: {
+      likes: number
+      retweets: number
+      replies: number
+      views?: number
+    }
+    created_at: string
+    url: string
+  }>
+  trending: string[]
+  sentiment: {
+    positive: number
+    neutral: number
+    negative: number
+  }
+  influencers: Array<{
+    username: string
+    name: string
+    followers: number
+    engagement: number
+  }>
+}
+
+export interface LinkedInData {
+  posts: Array<{
+    id: string
+    text: string
+    author: {
+      name: string
+      headline: string
+      company?: string
+    }
+    engagement: {
+      likes: number
+      comments: number
+      shares: number
+    }
+    publishedAt: string
+    url: string
+  }>
+  companies: Array<{
+    name: string
+    industry: string
+    size: string
+    followers: number
+    description: string
+    specialties: string[]
+  }>
+  insights: {
+    industryTrends: string[]
+    skillsInDemand: string[]
+    hiringTrends: string[]
+  }
+  sentiment: {
+    positive: number
+    neutral: number
+    negative: number
+  }
+}
+
+export interface CompetitorData {
+  competitors: Array<{
+    name: string
+    domain: string
+    description: string
+    marketShare?: number
+    founded?: string
+    employees?: string
+    revenue?: string
+    funding?: string
+    headquarters?: string
+    products: string[]
+    strengths: string[]
+    weaknesses: string[]
+    recentNews: Array<{
+      title: string
+      date: string
+      summary: string
+      url?: string
+    }>
+    socialMetrics?: {
+      twitter?: { followers: number; engagement: number }
+      linkedin?: { followers: number; employees: number }
+      facebook?: { likes: number }
+    }
+  }>
+  marketOverview: {
+    totalMarketSize: string
+    growthRate: string
+    keyTrends: string[]
+    marketLeaders: Array<{ name: string; share: number }>
+  }
+  competitivePositioning: {
+    strengths: string[]
+    weaknesses: string[]
+    opportunities: string[]
+    threats: string[]
+  }
+  recommendations: string[]
 }
