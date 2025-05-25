@@ -100,6 +100,10 @@ export interface EconomicIndicator {
   source?: string
 }
 
+export interface EconomicData {
+  indicators: EconomicIndicator[]
+}
+
 export interface FinancialData {
   stocks?: Array<{
     symbol: string
