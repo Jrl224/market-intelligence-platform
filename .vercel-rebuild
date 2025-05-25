@@ -1,0 +1,4 @@
+# Force Rebuild
+This file forces Vercel to rebuild with the latest commit.
+Build timestamp: 2025-05-25T01:44:00Z
+Fixed: lucide-react import issue
