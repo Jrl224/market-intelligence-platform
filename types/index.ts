@@ -43,6 +43,10 @@ export interface NewsArticle {
   imageUrl?: string
 }
 
+export interface NewsData {
+  articles: NewsArticle[]
+}
+
 export interface SentimentData {
   overallSentiment: {
     positive: number
@@ -81,6 +85,10 @@ export interface ResearchPaper {
   citations?: number
 }
 
+export interface ResearchData {
+  papers: ResearchPaper[]
+}
+
 export interface Patent {
   title: string
   patentNumber: string
@@ -89,6 +97,11 @@ export interface Patent {
   date: string
   abstract: string
   url?: string
+}
+
+export interface PatentData {
+  patents: Patent[]
+  totalPatents?: number
 }
 
 export interface EconomicIndicator {
