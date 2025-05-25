@@ -12,6 +12,7 @@ import FinancialSection from './sections/FinancialSection'
 import TwitterSection from './sections/TwitterSection'
 import LinkedInSection from './sections/LinkedInSection'
 import CompetitorSection from './sections/CompetitorSection'
+import QueryExpansionSection from './sections/QueryExpansionSection'
 
 interface ReportSectionProps {
   section: ReportSectionType
@@ -22,6 +23,8 @@ export default function ReportSection({ section }: ReportSectionProps) {
   
   const renderSection = () => {
     switch (section.type) {
+      case 'query-expansion':
+        return <QueryExpansionSection data={section.data} />
       case 'trends':
         return <TrendsSection data={section.data} />
       case 'news':
