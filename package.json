@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "next lint",
     "check-env": "node scripts/check-env.js",
-    "setup": "npm install && npm run check-env"
+    "setup": "npm install && npm run check-env",
+    "test-deployment": "node scripts/test-deployment.js",
+    "deploy": "vercel --prod"
   },
   "dependencies": {
     "@types/node": "22.10.2",
