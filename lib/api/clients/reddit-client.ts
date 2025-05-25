@@ -50,6 +50,10 @@ export class RedditClient {
     this.accessToken = response.data.access_token
     this.tokenExpiry = Date.now() + (response.data.expires_in * 1000) - 60000 // Refresh 1 min early
     
+    if (!this.accessToken) {
+      throw new Error('Failed to obtain Reddit access token')
+    }
+    
     return this.accessToken
   }
 
