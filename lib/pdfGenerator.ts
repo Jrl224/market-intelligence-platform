@@ -134,7 +134,7 @@ export async function generatePDF(data: ReportData) {
       
       // Title
       pdf.setFontSize(11)
-      pdf.setFont(undefined, 'bold')
+      pdf.setFont('helvetica', 'bold')
       const titleLines = pdf.splitTextToSize(article.title || 'Untitled', pageWidth - 2 * margin)
       titleLines.forEach((line: string) => {
         pdf.text(line, margin, yPosition)
@@ -143,7 +143,7 @@ export async function generatePDF(data: ReportData) {
       
       // Source and date
       pdf.setFontSize(9)
-      pdf.setFont(undefined, 'normal')
+      pdf.setFont('helvetica', 'normal')
       pdf.setTextColor(100, 100, 100)
       const date = article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'Unknown date'
       pdf.text(`${article.source || 'Unknown source'} - ${date}`, margin, yPosition)
@@ -190,14 +190,14 @@ export async function generatePDF(data: ReportData) {
       data.redditPosts.slice(0, 3).forEach((post: any) => {
         checkNewPage(20)
         pdf.setFontSize(10)
-        pdf.setFont(undefined, 'bold')
+        pdf.setFont('helvetica', 'bold')
         const titleLines = pdf.splitTextToSize(post.title || 'Untitled', pageWidth - 2 * margin)
         titleLines.forEach((line: string) => {
           pdf.text(line, margin, yPosition)
           yPosition += 5
         })
         
-        pdf.setFont(undefined, 'normal')
+        pdf.setFont('helvetica', 'normal')
         pdf.setTextColor(100, 100, 100)
         pdf.text(`r/${post.subreddit || 'unknown'} • Score: ${post.score || 0}`, margin, yPosition)
         yPosition += 8
@@ -218,7 +218,7 @@ export async function generatePDF(data: ReportData) {
       checkNewPage(30)
       
       // Title
-      pdf.setFont(undefined, 'bold')
+      pdf.setFont('helvetica', 'bold')
       const titleLines = pdf.splitTextToSize(paper.title || 'Untitled', pageWidth - 2 * margin)
       titleLines.forEach((line: string) => {
         pdf.text(line, margin, yPosition)
@@ -226,7 +226,7 @@ export async function generatePDF(data: ReportData) {
       })
       
       // Authors and year
-      pdf.setFont(undefined, 'normal')
+      pdf.setFont('helvetica', 'normal')
       pdf.setFontSize(9)
       pdf.setTextColor(100, 100, 100)
       const authors = paper.authors?.slice(0, 3).join(', ') || 'Unknown authors'
@@ -279,14 +279,14 @@ export async function generatePDF(data: ReportData) {
     patents.slice(0, 5).forEach((patent: any) => {
       checkNewPage(25)
       
-      pdf.setFont(undefined, 'bold')
+      pdf.setFont('helvetica', 'bold')
       const titleLines = pdf.splitTextToSize(patent.title || 'Untitled Patent', pageWidth - 2 * margin)
       titleLines.forEach((line: string) => {
         pdf.text(line, margin, yPosition)
         yPosition += 5
       })
       
-      pdf.setFont(undefined, 'normal')
+      pdf.setFont('helvetica', 'normal')
       pdf.setFontSize(9)
       pdf.setTextColor(100, 100, 100)
       pdf.text(`Patent #${patent.patentNumber || 'Unknown'} • ${patent.date || 'Unknown date'}`, margin, yPosition)
@@ -321,11 +321,11 @@ export async function generatePDF(data: ReportData) {
     
     indicators.forEach((indicator: any) => {
       checkNewPage()
-      pdf.setFont(undefined, 'bold')
+      pdf.setFont('helvetica', 'bold')
       pdf.text(indicator.name || 'Unknown Indicator', margin, yPosition)
       yPosition += 5
       
-      pdf.setFont(undefined, 'normal')
+      pdf.setFont('helvetica', 'normal')
       const value = `${indicator.value || 'N/A'} ${indicator.unit || ''}`
       const change = indicator.change ? ` (${indicator.change > 0 ? '+' : ''}${indicator.change}%)` : ''
       pdf.text(`${value}${change}`, margin, yPosition)
@@ -355,10 +355,10 @@ export async function generatePDF(data: ReportData) {
     Object.entries(data).forEach(([key, value]) => {
       if (typeof value === 'object' && value !== null) {
         checkNewPage()
-        pdf.setFont(undefined, 'bold')
+        pdf.setFont('helvetica', 'bold')
         pdf.text(key.charAt(0).toUpperCase() + key.slice(1), margin, yPosition)
         yPosition += 5
-        pdf.setFont(undefined, 'normal')
+        pdf.setFont('helvetica', 'normal')
         
         Object.entries(value).forEach(([subKey, subValue]) => {
           pdf.text(`${subKey}: ${subValue}`, margin + 5, yPosition)
