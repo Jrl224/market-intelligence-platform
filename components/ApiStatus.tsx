@@ -29,7 +29,7 @@ const API_CONFIGS: ApiConfig[] = [
   { name: 'LinkedIn', key: 'LINKEDIN_ACCESS_TOKEN', category: 'Professional', description: 'Professional insights' },
   
   // AI Providers
-  { name: 'OpenAI', key: 'OPENAI_API_KEY', category: 'AI', required: true, description: 'GPT-4 insights' },
+  { name: 'OpenAI', key: 'OPENAI_API_KEY', category: 'AI', required: true, description: 'GPT-4 insights & query expansion' },
   { name: 'Anthropic', key: 'ANTHROPIC_API_KEY', category: 'AI', description: 'Claude analysis' },
   { name: 'Gemini', key: 'GEMINI_API_KEY', category: 'AI', description: 'Google AI' },
   
@@ -165,6 +165,7 @@ export default function ApiStatus({ isOpen, onClose }: { isOpen: boolean; onClos
                 <div className="p-4 bg-green-50 rounded-lg">
                   <p className="text-sm text-green-800 font-semibold mb-2">New Features:</p>
                   <ul className="text-sm text-green-800 space-y-1">
+                    <li>• Query Expansion for intelligent category analysis</li>
                     <li>• Twitter/X integration for real-time social monitoring</li>
                     <li>• LinkedIn API for professional insights</li>
                     <li>• Competitor analysis with SWOT and market positioning</li>

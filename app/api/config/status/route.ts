@@ -73,6 +73,7 @@ export async function GET() {
     economic: apiStatus.FRED_API_KEY,
     financial: apiStatus.ALPHA_VANTAGE_KEY || apiStatus.RAPIDAPI_KEY,
     insights: hasAiProvider,
+    queryExpansion: hasAiProvider, // New feature
     export: true, // Always available
     historicalData: apiStatus.DATABASE_URL,
     caching: apiStatus.REDIS_URL
@@ -110,7 +111,8 @@ export async function GET() {
       research: apiStatus.SEMANTIC_SCHOLAR_KEY || apiStatus.CORE_API_KEY || apiStatus.CROSSREF_EMAIL,
       economic: apiStatus.FRED_API_KEY || apiStatus.CENSUS_API_KEY,
       financial: apiStatus.ALPHA_VANTAGE_KEY || apiStatus.RAPIDAPI_KEY,
-      ai: hasAiProvider
+      ai: hasAiProvider,
+      queryExpansion: hasAiProvider // New feature
     },
     timestamp: new Date().toISOString()
   }, { headers })
