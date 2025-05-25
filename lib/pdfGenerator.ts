@@ -351,20 +351,86 @@ export async function generatePDF(data: ReportData) {
       return
     }
     
-    // Add any financial metrics
-    Object.entries(data).forEach(([key, value]) => {
-      if (typeof value === 'object' && value !== null) {
-        checkNewPage()
+    // Handle stocks array specifically
+    if (data.stocks && Array.isArray(data.stocks)) {
+      pdf.setFontSize(12)
+      pdf.text('Stock Performance:', margin, yPosition)
+      yPosition += 7
+      
+      data.stocks.forEach((stock: any) => {
+        checkNewPage(20)
         pdf.setFont('helvetica', 'bold')
-        pdf.text(key.charAt(0).toUpperCase() + key.slice(1), margin, yPosition)
+        pdf.setFontSize(11)
+        pdf.text(`${stock.symbol || 'N/A'} - ${stock.name || 'Unknown'}`, margin, yPosition)
         yPosition += 5
-        pdf.setFont('helvetica', 'normal')
         
-        Object.entries(value).forEach(([subKey, subValue]) => {
-          pdf.text(`${subKey}: ${subValue}`, margin + 5, yPosition)
+        pdf.setFont('helvetica', 'normal')
+        pdf.setFontSize(10)
+        const price = stock.price ? `$${stock.price.toFixed(2)}` : 'N/A'
+        const change = stock.change !== undefined ? `${stock.change > 0 ? '+' : ''}${stock.change.toFixed(2)}` : ''
+        const changePercent = stock.changePercent !== undefined ? ` (${stock.changePercent > 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%)` : ''
+        pdf.text(`Price: ${price} ${change}${changePercent}`, margin + 5, yPosition)
+        yPosition += 5
+        
+        if (stock.volume) {
+          pdf.text(`Volume: ${stock.volume.toLocaleString()}`, margin + 5, yPosition)
           yPosition += 5
-        })
+        }
+        if (stock.marketCap) {
+          pdf.text(`Market Cap: $${(stock.marketCap / 1e9).toFixed(2)}B`, margin + 5, yPosition)
+          yPosition += 5
+        }
+        if (stock.pe) {
+          pdf.text(`P/E Ratio: ${stock.pe.toFixed(2)}`, margin + 5, yPosition)
+          yPosition += 5
+        }
         yPosition += 3
+      })
+    }
+    
+    // Handle market indices
+    if (data.marketIndices && Array.isArray(data.marketIndices)) {
+      checkNewPage()
+      pdf.setFontSize(12)
+      pdf.text('Market Indices:', margin, yPosition)
+      yPosition += 7
+      
+      data.marketIndices.forEach((index: any) => {
+        checkNewPage()
+        pdf.setFontSize(10)
+        const value = index.value ? index.value.toFixed(2) : 'N/A'
+        const change = index.changePercent !== undefined ? ` (${index.changePercent > 0 ? '+' : ''}${index.changePercent.toFixed(2)}%)` : ''
+        pdf.text(`${index.name}: ${value}${change}`, margin, yPosition)
+        yPosition += 5
+      })
+      yPosition += 3
+    }
+    
+    // Handle sector performance
+    if (data.sectorPerformance && typeof data.sectorPerformance === 'object') {
+      checkNewPage()
+      pdf.setFontSize(12)
+      pdf.text('Sector Performance:', margin, yPosition)
+      yPosition += 7
+      
+      Object.entries(data.sectorPerformance).forEach(([sector, performance]: [string, any]) => {
+        checkNewPage()
+        pdf.setFontSize(10)
+        const change = performance.change !== undefined ? `${performance.change > 0 ? '+' : ''}${performance.change}%` : 'N/A'
+        pdf.text(`${sector}: ${change} (${performance.performance || 'N/A'})`, margin, yPosition)
+        yPosition += 5
+      })
+    }
+    
+    // Handle any other financial data
+    Object.entries(data).forEach(([key, value]) => {
+      if (['stocks', 'marketIndices', 'sectorPerformance'].includes(key)) return
+      
+      if (typeof value === 'string' || typeof value === 'number') {
+        checkNewPage()
+        pdf.setFontSize(10)
+        pdf.text(`${key}: ${value}`, margin, yPosition)
+        yPosition += 5
       }
     })
   }
