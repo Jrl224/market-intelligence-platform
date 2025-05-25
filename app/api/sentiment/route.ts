@@ -111,28 +111,43 @@ export async function POST(request: NextRequest) {
           })
           
           const total = allComments.length || 1
-          youtubeSentiment = {
-            positive: Math.round((youtubeSentiment.positive / total) * 100),
-            neutral: Math.round((youtubeSentiment.neutral / total) * 100),
-            negative: Math.round((youtubeSentiment.negative / total) * 100)
-          }
+          // Calculate raw percentages
+          const rawPositive = (youtubeSentiment.positive / total) * 100
+          const rawNeutral = (youtubeSentiment.neutral / total) * 100
+          const rawNegative = (youtubeSentiment.negative / total) * 100
+          
+          // Ensure percentages sum to 100%
+          youtubeSentiment = ensurePercentagesSum100({
+            positive: rawPositive,
+            neutral: rawNeutral,
+            negative: rawNegative
+          })
         }
       } catch (error) {
         console.error('YouTube API error:', error)
       }
     }
     
-    // Combine sentiments
-    const overallSentiment = {
-      positive: Math.round((redditSentiment.positive + youtubeSentiment.positive) / 2),
-      neutral: Math.round((redditSentiment.neutral + youtubeSentiment.neutral) / 2),
-      negative: Math.round((redditSentiment.negative + youtubeSentiment.negative) / 2)
+    // Ensure Reddit sentiment also sums to 100%
+    redditSentiment.positive = redditSentiment.positive || 0
+    redditSentiment.neutral = redditSentiment.neutral || 0
+    redditSentiment.negative = redditSentiment.negative || 0
+    
+    const fixedRedditSentiment = ensurePercentagesSum100(redditSentiment)
+    
+    // Combine sentiments - calculate weighted average then ensure 100%
+    const overallRaw = {
+      positive: (fixedRedditSentiment.positive + youtubeSentiment.positive) / 2,
+      neutral: (fixedRedditSentiment.neutral + youtubeSentiment.neutral) / 2,
+      negative: (fixedRedditSentiment.negative + youtubeSentiment.negative) / 2
     }
+    
+    const overallSentiment = ensurePercentagesSum100(overallRaw)
     
     return NextResponse.json({
       redditPosts: redditPosts.slice(0, 10), // Top 10 posts
       youtubeSentiment,
-      redditSentiment,
+      redditSentiment: fixedRedditSentiment,
       overallSentiment
     })
   } catch (error) {
@@ -146,4 +161,37 @@ export async function POST(request: NextRequest) {
       overallSentiment: { positive: 0, neutral: 0, negative: 0 }
     })
   }
+}
+
+// Helper function to ensure percentages sum to exactly 100
+function ensurePercentagesSum100(sentiment: {positive: number, neutral: number, negative: number}) {
+  const total = sentiment.positive + sentiment.neutral + sentiment.negative
+  
+  if (total === 0) {
+    return { positive: 0, neutral: 100, negative: 0 }
+  }
+  
+  // Calculate normalized percentages
+  let positive = Math.round(sentiment.positive)
+  let neutral = Math.round(sentiment.neutral)
+  let negative = Math.round(sentiment.negative)
+  
+  // Adjust for rounding errors
+  const sum = positive + neutral + negative
+  const diff = 100 - sum
+  
+  if (diff !== 0) {
+    // Add/subtract the difference to/from the largest value
+    const values = [
+      { key: 'positive', value: positive },
+      { key: 'neutral', value: neutral },
+      { key: 'negative', value: negative }
+    ].sort((a, b) => b.value - a.value)
+    
+    if (values[0].key === 'positive') positive += diff
+    else if (values[0].key === 'neutral') neutral += diff
+    else negative += diff
+  }
+  
+  return { positive, neutral, negative }
 }
