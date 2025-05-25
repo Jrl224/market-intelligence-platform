@@ -142,6 +142,7 @@ export interface FinancialData {
       performance: string
     }
   }
+  message?: string
 }
 
 export interface InsightsData {
