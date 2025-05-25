@@ -1,0 +1,9 @@
+# Force Rebuild - Deploy from Main Branch
+Build timestamp: 2025-05-25T02:02:00Z
+
+IMPORTANT: Vercel must deploy from the `main` branch, not the feature branch.
+
+All fixes are in main branch:
+- lucide-react dependency removed
+- All TypeScript types fixed
+- Query Expansion feature ready
