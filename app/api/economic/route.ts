@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       try {
         // Key economic indicators series IDs
         const fredSeries = [
-          { id: 'GDPC1', name: 'GDP Growth Rate', unit: '%' },
+          { id: 'GDPC1', name: 'GDP Growth Rate', unit: '%', isGrowthRate: true },
           { id: 'UNRATE', name: 'Unemployment Rate', unit: '%' },
           { id: 'CPIAUCSL', name: 'Consumer Price Index', unit: 'Index' },
           { id: 'DFF', name: 'Federal Funds Rate', unit: '%' },
@@ -52,15 +52,31 @@ export async function POST(request: NextRequest) {
               const latest = response.data.observations[0]
               const previous = response.data.observations[1]
               
+              let value = parseFloat(latest.value)
               let change = undefined
-              if (previous && !isNaN(parseFloat(latest.value)) && !isNaN(parseFloat(previous.value))) {
+              
+              // Handle GDP Growth Rate calculation specifically
+              if (series.isGrowthRate && previous) {
+                // For GDP, calculate annualized growth rate
+                const latestVal = parseFloat(latest.value)
+                const prevVal = parseFloat(previous.value)
+                if (!isNaN(latestVal) && !isNaN(prevVal) && prevVal !== 0) {
+                  // Calculate quarterly growth rate and annualize it
+                  const quarterlyGrowth = ((latestVal - prevVal) / prevVal) * 100
+                  value = Number((quarterlyGrowth * 4).toFixed(2)) // Annualized
+                  // Ensure reasonable bounds for GDP growth
+                  if (Math.abs(value) > 50) {
+                    value = quarterlyGrowth // Use quarterly if annualized seems wrong
+                  }
+                }
+              } else if (previous && !isNaN(parseFloat(latest.value)) && !isNaN(parseFloat(previous.value))) {
                 const latestVal = parseFloat(latest.value)
                 const prevVal = parseFloat(previous.value)
                 
                 if (series.unit === '%') {
                   // For percentages, show absolute change
                   change = Number((latestVal - prevVal).toFixed(2))
-                } else {
+                } else if (prevVal !== 0) {
                   // For other values, show percentage change
                   change = Number(((latestVal - prevVal) / prevVal * 100).toFixed(2))
                 }
@@ -68,9 +84,9 @@ export async function POST(request: NextRequest) {
               
               indicators.push({
                 name: series.name,
-                value: parseFloat(latest.value),
+                value: value,
                 unit: series.unit,
-                date: latest.date,
+                date: formatDate(latest.date),
                 change: change,
                 source: 'FRED'
               })
@@ -158,7 +174,7 @@ export async function POST(request: NextRequest) {
             name: 'S&P 500 Index',
             value: parseFloat(quote['05. price']),
             unit: 'Points',
-            date: quote['07. latest trading day'],
+            date: formatDate(quote['07. latest trading day']),
             change: parseFloat(quote['10. change percent'].replace('%', '')),
             source: 'Alpha Vantage'
           })
@@ -168,15 +184,16 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // If no real data available, provide informative message
+    // If no real data available, provide informative message with realistic mock data
     if (indicators.length === 0) {
-      // Get some basic mock indicators
+      // Get realistic mock indicators
+      const currentDate = new Date()
       const mockIndicators: EconomicIndicator[] = [
         {
           name: 'GDP Growth Rate',
           value: 2.8,
           unit: '%',
-          date: 'Invalid Date',
+          date: formatDate(new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()),
           change: 0.3,
           source: 'Mock Data'
         },
@@ -184,7 +201,7 @@ export async function POST(request: NextRequest) {
           name: 'Unemployment Rate',
           value: 3.9,
           unit: '%',
-          date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          date: formatDate(new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()),
           change: -0.1,
           source: 'Mock Data'
         },
@@ -192,7 +209,7 @@ export async function POST(request: NextRequest) {
           name: 'Consumer Price Index',
           value: 307.671,
           unit: 'Index',
-          date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          date: formatDate(new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()),
           change: 2.6,
           source: 'Mock Data'
         },
@@ -200,8 +217,24 @@ export async function POST(request: NextRequest) {
           name: 'Federal Funds Rate',
           value: 4.58,
           unit: '%',
-          date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          date: formatDate(new Date(currentDate.getTime() - 60 * 24 * 60 * 60 * 1000).toISOString()),
           change: 0,
+          source: 'Mock Data'
+        },
+        {
+          name: '10-Year Treasury Rate',
+          value: 4.25,
+          unit: '%',
+          date: formatDate(new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()),
+          change: 0.05,
+          source: 'Mock Data'
+        },
+        {
+          name: 'S&P 500 Index',
+          value: 5234.18,
+          unit: 'Points',
+          date: formatDate(new Date(currentDate.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString()),
+          change: 0.62,
           source: 'Mock Data'
         }
       ]
@@ -214,7 +247,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Sort indicators by importance/relevance
-    const sortOrder = ['GDP Growth Rate', 'Unemployment Rate', 'Consumer Price Index', 'Federal Funds Rate']
+    const sortOrder = ['GDP Growth Rate', 'Unemployment Rate', 'Consumer Price Index', 'Federal Funds Rate', '10-Year Treasury Rate', 'S&P 500 Index']
     indicators.sort((a, b) => {
       const aIndex = sortOrder.indexOf(a.name)
       const bIndex = sortOrder.indexOf(b.name)
@@ -234,5 +267,18 @@ export async function POST(request: NextRequest) {
       indicators: [],
       error: 'Unable to fetch economic data'
     })
+  }
+}
+
+// Helper function to format dates properly
+function formatDate(dateStr: string): string {
+  try {
+    const date = new Date(dateStr)
+    if (isNaN(date.getTime())) {
+      return dateStr // Return original if parsing fails
+    }
+    return date.toISOString().split('T')[0] // Return YYYY-MM-DD format
+  } catch (error) {
+    return dateStr
   }
 }
