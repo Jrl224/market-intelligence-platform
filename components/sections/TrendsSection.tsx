@@ -36,11 +36,11 @@ export default function TrendsSection({ data }: TrendsSectionProps) {
   }
   
   const chartData = {
-    labels: timelineData.map(item => item.date),
+    labels: timelineData.map((item: { date: string; value: number }) => item.date),
     datasets: [
       {
         label: 'Search Interest',
-        data: timelineData.map(item => item.value),
+        data: timelineData.map((item: { date: string; value: number }) => item.value),
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         tension: 0.4
