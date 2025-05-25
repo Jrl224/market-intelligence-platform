@@ -20,10 +20,16 @@ export default function EconomicSection({ data }: EconomicSectionProps) {
             {indicator.value.toLocaleString()} {indicator.unit}
           </p>
           <p className={`text-sm mt-1 ${
-            indicator.change > 0 ? 'text-green-600' : 
-            indicator.change < 0 ? 'text-red-600' : 'text-gray-600'
+            indicator.change !== undefined && indicator.change > 0 ? 'text-green-600' : 
+            indicator.change !== undefined && indicator.change < 0 ? 'text-red-600' : 'text-gray-600'
           }`}>
-            {indicator.change > 0 ? '↑' : indicator.change < 0 ? '↓' : '→'} {Math.abs(indicator.change)}%
+            {indicator.change !== undefined ? (
+              <>
+                {indicator.change > 0 ? '↑' : indicator.change < 0 ? '↓' : '→'} {Math.abs(indicator.change)}%
+              </>
+            ) : (
+              'No change data'
+            )}
           </p>
           <p className="text-xs text-gray-500 mt-1">
             {new Date(indicator.date).toLocaleDateString()}
