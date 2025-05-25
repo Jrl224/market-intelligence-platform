@@ -13,11 +13,13 @@ export default function PatentsSection({ data }: PatentsSectionProps) {
   
   return (
     <div className="space-y-4">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-        <p className="text-blue-800">
-          Total Patents Found: <span className="font-semibold">{data.totalCount}</span>
-        </p>
-      </div>
+      {data.totalPatents && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <p className="text-blue-800">
+            Total Patents Found: <span className="font-semibold">{data.totalPatents}</span>
+          </p>
+        </div>
+      )}
       
       {data.patents.slice(0, 5).map((patent, index) => (
         <div key={index} className="border-l-4 border-green-500 pl-4">
@@ -31,7 +33,9 @@ export default function PatentsSection({ data }: PatentsSectionProps) {
           <p className="text-sm text-gray-700 mb-2">
             <span className="font-medium">Assignee:</span> {patent.assignee}
           </p>
-          <p className="text-gray-700 text-sm line-clamp-2">{patent.abstract}</p>
+          {patent.abstract && (
+            <p className="text-gray-700 text-sm line-clamp-2">{patent.abstract}</p>
+          )}
         </div>
       ))}
     </div>
