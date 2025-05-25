@@ -1,14 +1,17 @@
+import type { QueryExpansion } from '@/app/api/ai/query-expansion/route'
+
 export interface ReportData {
   query: string
   timestamp: string
   summary: string
   sections: ReportSection[]
+  queryExpansion?: QueryExpansion | null
 }
 
 export interface ReportSection {
   id: string
   title: string
-  type: 'trends' | 'news' | 'sentiment' | 'research' | 'patents' | 'economic' | 'financial' | 'insights' | 'twitter' | 'linkedin' | 'competitors'
+  type: 'trends' | 'news' | 'sentiment' | 'research' | 'patents' | 'economic' | 'financial' | 'insights' | 'twitter' | 'linkedin' | 'competitors' | 'query-expansion'
   data: any
   visible: boolean
   loading?: boolean

@@ -1,30 +1,52 @@
 import type { ReportData, ReportSection } from '@/types'
+import type { QueryExpansion } from '@/app/api/ai/query-expansion/route'
 
 export async function generateReport(query: string): Promise<ReportData> {
   const timestamp = new Date().toISOString()
   
-  // Determine if we need industry/company specific data
-  const isCompanyQuery = /company|corporation|inc|ltd|llc|competitor/i.test(query)
-  const industry = detectIndustry(query)
+  // First, expand the query to get category insights and related terms
+  let queryExpansion: QueryExpansion | null = null
+  let expandedQuery = query
   
-  // Fetch data from all sources in parallel
+  try {
+    const expansionResponse = await fetch('/api/ai/query-expansion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    })
+    
+    if (expansionResponse.ok) {
+      queryExpansion = await expansionResponse.json()
+      // Use expanded terms for better search results
+      expandedQuery = queryExpansion.searchStrategy.primary.join(' ')
+    }
+  } catch (error) {
+    console.error('Query expansion error:', error)
+  }
+  
+  // Determine if we need industry/company specific data
+  const isCompanyQuery = /company|corporation|inc|ltd|llc|competitor/i.test(query) || 
+    (queryExpansion && queryExpansion.competitors.length > 0)
+  const industry = queryExpansion?.category.name || detectIndustry(query)
+  
+  // Fetch data from all sources in parallel, using expanded query
   const fetchPromises = [
-    generateSummary(query),
-    fetchTrends(query),
-    fetchNews(query),
-    fetchSentiment(query),
-    fetchResearch(query),
-    fetchPatents(query),
-    fetchEconomic(query),
-    fetchFinancial(query),
-    fetchTwitter(query),
-    fetchLinkedIn(query),
-    generateInsights(query)
+    generateSummary(query, queryExpansion),
+    fetchTrends(expandedQuery),
+    fetchNews(expandedQuery),
+    fetchSentiment(expandedQuery),
+    fetchResearch(expandedQuery),
+    fetchPatents(expandedQuery),
+    fetchEconomic(expandedQuery),
+    fetchFinancial(expandedQuery),
+    fetchTwitter(expandedQuery),
+    fetchLinkedIn(expandedQuery),
+    generateInsights(query, queryExpansion)
   ]
   
   // Add competitor analysis if relevant
-  if (isCompanyQuery || industry) {
-    fetchPromises.push(fetchCompetitors(query, industry))
+  if (isCompanyQuery || industry || queryExpansion?.competitors.length) {
+    fetchPromises.push(fetchCompetitors(query, industry, queryExpansion))
   }
   
   const results = await Promise.allSettled(fetchPromises)
@@ -46,6 +68,17 @@ export async function generateReport(query: string): Promise<ReportData> {
   ] = results
   
   const sections: ReportSection[] = []
+  
+  // Add query expansion section if available
+  if (queryExpansion) {
+    sections.push({
+      id: 'query-expansion',
+      title: 'Market Intelligence Context',
+      type: 'query-expansion',
+      data: queryExpansion,
+      visible: true
+    })
+  }
   
   // Add sections based on successful data fetches
   if (trends.status === 'fulfilled' && trends.value) {
@@ -165,7 +198,8 @@ export async function generateReport(query: string): Promise<ReportData> {
     query,
     timestamp,
     summary: summary.status === 'fulfilled' ? summary.value : 'Analysis complete.',
-    sections
+    sections,
+    queryExpansion
   }
 }
 
@@ -191,11 +225,11 @@ function detectIndustry(query: string): string | null {
 }
 
 // API Functions
-async function generateSummary(query: string): Promise<string> {
+async function generateSummary(query: string, expansion?: QueryExpansion | null): Promise<string> {
   const response = await fetch('/api/ai/summary', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query })
+    body: JSON.stringify({ query, context: expansion })
   })
   const data = await response.json()
   return data.summary
@@ -246,11 +280,16 @@ async function fetchLinkedIn(query: string) {
   return response.json()
 }
 
-async function fetchCompetitors(query: string, industry: string | null) {
+async function fetchCompetitors(query: string, industry: string | null, expansion?: QueryExpansion | null) {
   const response = await fetch('/api/competitors', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, industry })
+    body: JSON.stringify({ 
+      query, 
+      industry,
+      competitors: expansion?.competitors,
+      category: expansion?.category
+    })
   })
   return response.json()
 }
@@ -291,11 +330,11 @@ async function fetchFinancial(query: string) {
   return response.json()
 }
 
-async function generateInsights(query: string) {
+async function generateInsights(query: string, expansion?: QueryExpansion | null) {
   const response = await fetch('/api/ai/insights', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query })
+    body: JSON.stringify({ query, context: expansion })
   })
   return response.json()
 }
